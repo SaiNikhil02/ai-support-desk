@@ -1,1 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
 
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>AI Support Desk</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='styles.css') }}"
+    >
+</head>
+
+<body>
+    <header class="app-header">
+        <div>
+            <p class="eyebrow">Lakebase-powered application</p>
+            <h1>AI Support Desk</h1>
+            <p class="subtitle">
+                View support tickets and their conversation history.
+            </p>
+        </div>
+
+        <div class="connection-badge">
+            <span class="connection-dot"></span>
+            Lakebase connected
+        </div>
+    </header>
+
+    <main class="app-layout">
+        <aside class="ticket-panel">
+           <div class="panel-heading">
+    <div>
+        <h2>Support Tickets</h2>
+        <p id="ticket-summary">Loading tickets...</p>
+    </div>
+
+    <div class="panel-actions">
+        <button
+            id="new-ticket-button"
+            class="primary-button"
+            type="button"
+        >
+            + New Ticket
+        </button>
+
+        <button
+            id="refresh-button"
+            class="secondary-button"
+            type="button"
+        >
+            Refresh
+        </button>
+    </div>
+</div>
+
+<div
+    id="new-ticket-panel"
+    class="new-ticket-panel hidden"
+>
+    <div class="form-heading">
+        <div>
+            <h3>Create a support ticket</h3>
+            <p>
+                The new ticket will be stored permanently in Lakebase.
+            </p>
+        </div>
+
+        <button
+            id="cancel-ticket-button"
+            class="close-button"
+            type="button"
+            aria-label="Close new ticket form"
+        >
+            ×
+        </button>
+    </div>
+
+    <form id="new-ticket-form">
+        <div class="form-group">
+            <label for="ticket-title-input">
+                Ticket title
+            </label>
+
+            <input
+                id="ticket-title-input"
+                name="title"
+                type="text"
+                maxlength="200"
+                placeholder="Example: Unable to access shared drive"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="created-by-input">
+                Created by
+            </label>
+
+            <input
+                id="created-by-input"
+                name="created_by"
+                type="email"
+                placeholder="your-email@example.com"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="ticket-status-input">
+                Status
+            </label>
+
+            <select
+                id="ticket-status-input"
+                name="status"
+            >
+                <option value="open">
+                    Open
+                </option>
+
+                <option value="in_progress">
+                    In Progress
+                </option>
+
+                <option value="resolved">
+                    Resolved
+                </option>
+            </select>
+        </div>
+
+        <div class="form-actions">
+            <button
+                id="create-ticket-button"
+                class="primary-button"
+                type="submit"
+            >
+                Create Ticket
+            </button>
+
+            <button
+                id="cancel-ticket-form-button"
+                class="secondary-button"
+                type="button"
+            >
+                Cancel
+            </button>
+        </div>
+    </form>
+</div>
+
+<div
+    id="success-message"
+    class="success-message hidden"
+    role="status"
+></div>
+
+            <div
+                id="ticket-list"
+                class="ticket-list"
+                aria-live="polite"
+            >
+                <div class="loading-card">
+                    Loading tickets from Lakebase...
+                </div>
+            </div>
+        </aside>
+
+        <section class="details-panel">
+            <div
+                id="empty-state"
+                class="empty-state"
+            >
+                <div class="empty-icon">🎫</div>
+                <h2>Select a support ticket</h2>
+                <p>
+                    Choose a ticket from the left to view its messages.
+                </p>
+            </div>
+
+            <div
+                id="ticket-details"
+                class="ticket-details hidden"
+            >
+                <div class="ticket-header">
+                    <div>
+                        <p
+                            id="ticket-number"
+                            class="ticket-number"
+                        ></p>
+
+                        <h2 id="ticket-title"></h2>
+
+                        <p
+                            id="ticket-created-by"
+                            class="ticket-meta"
+                        ></p>
+                    </div>
+
+                    <div class="status-control">
+    <span
+        id="ticket-status"
+        class="status-badge"
+    ></span>
+
+    <label for="status-select">
+        Update status
+    </label>
+
+    <div class="status-update-row">
+        <select id="status-select">
+            <option value="open">
+                Open
+            </option>
+
+            <option value="in_progress">
+                In Progress
+            </option>
+
+            <option value="resolved">
+                Resolved
+            </option>
+        </select>
+
+        <button
+            id="update-status-button"
+            class="primary-button"
+            type="button"
+        >
+            Update
+        </button>
+    </div>
+
+    <div
+        id="status-success"
+        class="inline-success hidden"
+        role="status"
+    ></div>
+</div>
+                </div>
+
+                <div class="conversation-heading">
+                    <div>
+                        <h3>Conversation</h3>
+                        <p id="message-summary"></p>
+                    </div>
+                </div>
+
+                <div
+                    id="message-list"
+                    class="message-list"
+                ></div>
+
+
+                <div class="message-form-section">
+    <h3>Add a message</h3>
+
+    <form id="new-message-form">
+        <div class="form-group">
+            <label for="message-text-input">
+                Message
+            </label>
+
+            <textarea
+                id="message-text-input"
+                name="message_text"
+                rows="4"
+                maxlength="5000"
+                placeholder="Write an update or response..."
+                required
+            ></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="message-author-input">
+                Author
+            </label>
+
+            <input
+                id="message-author-input"
+                name="author"
+                type="email"
+                placeholder="your-email@example.com"
+                required
+            >
+        </div>
+
+        <div class="form-actions">
+            <button
+                id="add-message-button"
+                class="primary-button"
+                type="submit"
+            >
+                Add Message
+            </button>
+        </div>
+    </form>
+
+    <div
+        id="message-success"
+        class="success-message hidden"
+        role="status"
+    ></div>
+</div>
+            </div>
+
+            <div
+                id="error-message"
+                class="error-message hidden"
+                role="alert"
+            ></div>
+        </section>
+    </main>
+
+    <script
+        src="{{ url_for('static', filename='app.js') }}"
+    ></script>
+</body>
+</html>
